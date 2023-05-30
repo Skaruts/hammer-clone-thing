@@ -1,0 +1,9 @@
+# Godot-specific ignores
+.import/
+.godot/
+export.cfg
+export_presets.cfg
+TESTS/
+
+# Imported translations (automatically generated from CSV files)
+*.translation

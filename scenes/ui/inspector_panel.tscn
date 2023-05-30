@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bnlvyoe8vxedg"]
+
+[node name="InspectorPanel" type="TabContainer"]
+custom_minimum_size = Vector2(300, 0)
+offset_left = 980.0
+offset_right = 1280.0
+offset_bottom = 651.0

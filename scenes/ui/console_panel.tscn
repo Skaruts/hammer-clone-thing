@@ -1,0 +1,7 @@
+[gd_scene format=3 uid="uid://bh6hg0knwpwkx"]
+
+[node name="console_panel" type="TabContainer"]
+custom_minimum_size = Vector2(0, 100)
+offset_top = 551.0
+offset_right = 968.0
+offset_bottom = 651.0

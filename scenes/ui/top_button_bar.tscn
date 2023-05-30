@@ -1,0 +1,104 @@
+[gd_scene load_steps=11 format=3 uid="uid://eiuywxksar3q"]
+
+[ext_resource type="Texture2D" uid="uid://dmnmqfq82fx8u" path="res://assets/ui/new_map.png" id="1_u7ba0"]
+[ext_resource type="Texture2D" uid="uid://maqfcdbgey35" path="res://assets/ui/load_map.png" id="2_1bu8m"]
+[ext_resource type="Texture2D" uid="uid://bcsgbwyj53apd" path="res://assets/ui/save_map.png" id="3_skj1b"]
+[ext_resource type="Texture2D" uid="uid://bs47xyxtdg7yl" path="res://assets/ui/save_map_as.png" id="4_md005"]
+[ext_resource type="Texture2D" uid="uid://bock7iw0juj1h" path="res://assets/ui/undo.png" id="5_weqwo"]
+[ext_resource type="Texture2D" uid="uid://cxydnu6tkpe30" path="res://assets/ui/redo.png" id="6_0peyf"]
+[ext_resource type="Texture2D" uid="uid://d2fen18ntbjgs" path="res://assets/ui/toggle_grid.png" id="7_niuy2"]
+[ext_resource type="Texture2D" uid="uid://brlmrxb8ypsmo" path="res://assets/ui/toggle_origin.png" id="8_jht3x"]
+[ext_resource type="Texture2D" uid="uid://be15cenij8htc" path="res://assets/ui/vertex_mode.png" id="9_32mhh"]
+[ext_resource type="Texture2D" uid="uid://bye6orvvcgup8" path="res://assets/ui/face_mode.png" id="10_l85yq"]
+
+[node name="top_button_bar" type="TabContainer"]
+offset_top = 37.0
+offset_right = 1280.0
+offset_bottom = 73.0
+tabs_visible = false
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 6.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="new_map" type="Button" parent="HBoxContainer"]
+offset_right = 28.0
+offset_bottom = 26.0
+icon = ExtResource("1_u7ba0")
+
+[node name="load_map" type="Button" parent="HBoxContainer"]
+offset_left = 32.0
+offset_right = 60.0
+offset_bottom = 26.0
+icon = ExtResource("2_1bu8m")
+
+[node name="save_map" type="Button" parent="HBoxContainer"]
+offset_left = 64.0
+offset_right = 92.0
+offset_bottom = 26.0
+icon = ExtResource("3_skj1b")
+
+[node name="save_map_as" type="Button" parent="HBoxContainer"]
+offset_left = 96.0
+offset_right = 124.0
+offset_bottom = 26.0
+icon = ExtResource("4_md005")
+
+[node name="VSeparator" type="VSeparator" parent="HBoxContainer"]
+offset_left = 128.0
+offset_right = 132.0
+offset_bottom = 26.0
+
+[node name="undo" type="Button" parent="HBoxContainer"]
+offset_left = 136.0
+offset_right = 164.0
+offset_bottom = 26.0
+icon = ExtResource("5_weqwo")
+
+[node name="redo" type="Button" parent="HBoxContainer"]
+offset_left = 168.0
+offset_right = 196.0
+offset_bottom = 26.0
+icon = ExtResource("6_0peyf")
+
+[node name="VSeparator3" type="VSeparator" parent="HBoxContainer"]
+offset_left = 200.0
+offset_right = 204.0
+offset_bottom = 26.0
+
+[node name="map_btn_toggle_grid" type="Button" parent="HBoxContainer"]
+offset_left = 208.0
+offset_right = 236.0
+offset_bottom = 26.0
+icon = ExtResource("7_niuy2")
+
+[node name="map_btn_toggle_origin" type="Button" parent="HBoxContainer"]
+offset_left = 240.0
+offset_right = 268.0
+offset_bottom = 26.0
+icon = ExtResource("8_jht3x")
+
+[node name="VSeparator2" type="VSeparator" parent="HBoxContainer"]
+offset_left = 272.0
+offset_right = 276.0
+offset_bottom = 26.0
+
+[node name="map_btn_vertex_mode" type="Button" parent="HBoxContainer"]
+offset_left = 280.0
+offset_right = 308.0
+offset_bottom = 26.0
+icon = ExtResource("9_32mhh")
+
+[node name="map_btn_face_mode" type="Button" parent="HBoxContainer"]
+offset_left = 312.0
+offset_right = 340.0
+offset_bottom = 26.0
+icon = ExtResource("10_l85yq")

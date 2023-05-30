@@ -1,0 +1,52 @@
+[gd_scene load_steps=7 format=3 uid="uid://8gq7jrb1tru0"]
+
+[ext_resource type="Script" path="res://scripts/2d_view.gd" id="1_gqavu"]
+[ext_resource type="Script" path="res://scripts/2d_view_grid.gd" id="2_bg6xa"]
+[ext_resource type="Script" path="res://scripts/2d_view_camera.gd" id="3_u5q1m"]
+[ext_resource type="Script" path="res://scripts/brushwork.gd" id="4_7ndep"]
+[ext_resource type="Texture2D" uid="uid://ddvsslg41672j" path="res://icon.svg" id="4_hpn1i"]
+[ext_resource type="Script" path="res://scenes/gizmos.gd" id="6_l441o"]
+
+[node name="2d_view" type="SubViewportContainer"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+stretch = true
+script = ExtResource("1_gqavu")
+metadata/_edit_lock_ = true
+
+[node name="SubViewport" type="SubViewport" parent="."]
+disable_3d = true
+handle_input_locally = false
+size = Vector2i(1280, 768)
+render_target_update_mode = 4
+
+[node name="Node2D" type="Node2D" parent="SubViewport"]
+
+[node name="Sprite2D" type="Sprite2D" parent="SubViewport/Node2D"]
+visible = false
+modulate = Color(1, 1, 1, 0.270588)
+texture = ExtResource("4_hpn1i")
+
+[node name="camera" type="Camera2D" parent="SubViewport/Node2D"]
+unique_name_in_owner = true
+script = ExtResource("3_u5q1m")
+
+[node name="grid" type="Node2D" parent="SubViewport/Node2D"]
+script = ExtResource("2_bg6xa")
+
+[node name="brushwork" type="Node2D" parent="SubViewport/Node2D"]
+unique_name_in_owner = true
+script = ExtResource("4_7ndep")
+
+[node name="gizmos" type="Node2D" parent="SubViewport/Node2D"]
+unique_name_in_owner = true
+script = ExtResource("6_l441o")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 2

@@ -1,0 +1,571 @@
+class_name DrawTool3DMesh extends Node3D
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+#        DrawTool3DMesh 0.9 (Godot 4)
+#
+#     Uses a MultiMeshInstance to draw instances of a cube or cylinder,
+#     stretched to represent lines, and spheres for 3D points.
+#     For each line AB, scale an instance of a cube in one axis to equal the
+#     distance from A to B, and then rotate it accordingly using
+#     'transform.looking_at()'.
+#     Cylinders are by default upright, along the Y axis, so they also have to
+#     be manually rotated to compensate for this.
+#
+#  Notes:
+#     '_WIDTH_FACTOR' affects the line width. Draw lines of width 1 to tweak it.
+#     Basically it's how thick the unit cube should be in order to properly
+#     represent a line of thickness 1.
+#
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+# TODO:
+#   - consider periodically lowering the 'instance_count', since currently it
+#     grows as needed, and stays as is to serve as an object pool,
+#     but it never comes back down (not sure it's really an issue)
+#
+#   - draw quads
+#   - draw polygons
+#
+#   - create cylinders without caps through code (and cones) ?
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+const _DOT_THRESHOLD := 0.999
+const _WIDTH_FACTOR := 0.005
+
+const _RADIAL_SEGMENTS := 8
+const _SPHERE_RINGS := 4
+const _CIRCLE_SEGMENTS := 16
+
+const _USE_TRANSPARENCY := false
+const _MAX_ALPHA := 0.5
+
+var unshaded := true    # actually looks great shaded, except for the cylinder caps
+var draw_outlines := false
+var draw_forelines := false
+var use_single_color := false
+
+var _mmis:Dictionary # MultiMeshInstances
+
+var _use_cylinders_for_lines := false
+
+var _labels := []
+var _label_nodes:Node3D
+var _num_labels := 0
+var _num_visible_labels := 0
+
+var _mat1:StandardMaterial3D
+var _mat2:StandardMaterial3D
+
+var _base_mat:StandardMaterial3D
+var _outline_mat:StandardMaterial3D
+var _foreline_mat:StandardMaterial3D
+
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+#    initializeation
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+func _init(_name=null) -> void:
+	name = "DrawTool3DMesh" if not _name else _name
+#	_create_materials()
+
+
+func setup(settings:Dictionary) -> void:
+	if "shading" in settings:
+
+	pass
+
+
+func initialize() -> void:
+	_label_nodes = Node3D.new()
+	add_child(_label_nodes)
+	_label_nodes.name = "3d_labels"
+
+	init_mmis()
+	if draw_outlines: init_outlines()
+	if draw_forelines: init_forelines()
+
+
+func init_outlines() -> void:
+	_outline_mat = StandardMaterial3D.new()
+	_outline_mat.albedo_color = Color.WHITE
+	_outline_mat.vertex_color_use_as_albedo = not use_single_color
+	_outline_mat.flags_unshaded = true
+	_outline_mat.flags_no_depth_test = true
+	_outline_mat.flags_do_not_receive_shadows = true
+	_outline_mat.flags_transparent = true
+
+	if _use_cylinders_for_lines:
+		_mmis["out_lines"] = _create_multimesh( _create_cylinder_mesh(_outline_mat) )
+	else:
+		_mmis["out_lines"] = _create_multimesh( _create_cube_mesh(_outline_mat) )
+
+	_mmis["out_cones"] = _create_multimesh( _create_cone_mesh(_outline_mat) )
+	_mmis["out_spheres"] = _create_multimesh( _create_sphere_mesh(_outline_mat) )
+
+
+func init_forelines() -> void:
+	_foreline_mat = StandardMaterial3D.new()
+	_foreline_mat.albedo_color = Color.WHITE
+	_foreline_mat.vertex_color_use_as_albedo = not use_single_color
+	_foreline_mat.flags_unshaded = unshaded
+	_foreline_mat.flags_no_depth_test = false
+	_foreline_mat.flags_do_not_receive_shadows = true
+	_foreline_mat.flags_transparent = true
+
+	if _use_cylinders_for_lines:
+		_mmis["fore_lines"] = _create_multimesh( _create_cylinder_mesh(_foreline_mat) )
+	else:
+		_mmis["fore_lines"] = _create_multimesh( _create_cube_mesh(_foreline_mat) )
+
+	_mmis["fore_cones"] = _create_multimesh( _create_cone_mesh(_foreline_mat) )
+	_mmis["fore_spheres"] = _create_multimesh( _create_sphere_mesh(_foreline_mat) )
+
+
+
+func init_mmis() -> void:
+	_base_mat = StandardMaterial3D.new()
+	_base_mat.albedo_color = Color.WHITE
+	_base_mat.vertex_color_use_as_albedo = not use_single_color
+	_base_mat.flags_unshaded = unshaded
+	_base_mat.flags_no_depth_test = true
+	_base_mat.flags_do_not_receive_shadows = true
+	_base_mat.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+
+	if _use_cylinders_for_lines:
+		_mmis["lines"] = _create_multimesh( _create_cylinder_mesh(_base_mat) )
+	else:
+		_mmis["lines"] = _create_multimesh( _create_cube_mesh(_base_mat) )
+
+	_mmis["cones"] = _create_multimesh( _create_cone_mesh(_base_mat) )
+	_mmis["spheres"] = _create_multimesh( _create_sphere_mesh(_base_mat) )
+
+
+
+func _create_cylinder_mesh(mat:StandardMaterial3D) -> Mesh:
+	# ----------------------------------------
+	# create lines
+
+	# Note: cylinders look like the cubes with 4 radial_segments
+	var cylinder := CylinderMesh.new()
+	cylinder.top_radius = _WIDTH_FACTOR
+	cylinder.bottom_radius = _WIDTH_FACTOR
+	cylinder.height = 1
+	cylinder.radial_segments = _RADIAL_SEGMENTS
+	cylinder.rings = 0
+	cylinder.material = mat
+
+	return cylinder
+
+func _create_cube_mesh(mat:StandardMaterial3D) -> Mesh:
+	# this is deprecated, but the cylinder code isn't well tested yet
+	# so this is here just in case
+	var cube := BoxMesh.new()
+	cube.size = Vector3(_WIDTH_FACTOR, _WIDTH_FACTOR, 1)
+	cube.material = mat
+
+	return cube
+
+
+func _create_cone_mesh(mat:StandardMaterial3D) -> Mesh:
+	# ----------------------------------------
+	# create cones (for vectors)
+	var cone := CylinderMesh.new()
+	cone.top_radius = 0
+	cone.bottom_radius = _WIDTH_FACTOR*4
+	cone.height = 0.04
+	cone.radial_segments = _RADIAL_SEGMENTS
+	cone.rings = 0
+	cone.material = mat
+
+	return cone
+
+func _create_sphere_mesh(mat:StandardMaterial3D) -> Mesh:
+	# ----------------------------------------
+	# create spheres
+	var sphere := SphereMesh.new()
+	sphere.radius = _WIDTH_FACTOR
+	sphere.height = _WIDTH_FACTOR*2
+	sphere.radial_segments = _RADIAL_SEGMENTS
+	sphere.rings = _SPHERE_RINGS
+	sphere.material = mat
+
+	return sphere
+
+
+#func _create_materials() -> void:
+#	_mat1 = StandardMaterial3D.new()
+##	_mat1.vertex_color_use_as_albedo = true
+#	_mat1.flags_unshaded = true
+#	_mat1.flags_no_depth_test = true
+#	_mat1.flags_do_not_receive_shadows = true
+#	_mat1.flags_transparent = true
+#	_mat1.albedo_color = Color(1,1,1,0.25)
+#	_mat1.render_priority = -1
+#
+#	_mat2 = StandardMaterial3D.new()
+#	_mat2.vertex_color_use_as_albedo = true
+#	_mat2.flags_unshaded = unshaded
+#	_mat2.flags_no_depth_test = false
+#	_mat2.flags_do_not_receive_shadows = true
+#	_mat2.flags_transparent = true
+#	_mat2.albedo_color = Color.WHITE
+##
+#	_mat1.next_pass = _mat2
+#	_mat2.next_pass = _mat2
+
+
+func _create_materials():
+	_mat1 = StandardMaterial3D.new()
+	_mat1.vertex_color_use_as_albedo = true
+	_mat1.flags_unshaded = unshaded
+	_mat1.flags_no_depth_test = true
+	_mat1.flags_do_not_receive_shadows = true
+	_mat1.flags_transparent = _USE_TRANSPARENCY
+	_mat1.albedo_color = Color(1,1,1, _MAX_ALPHA) if _USE_TRANSPARENCY else Color.WHITE
+
+#	if draw_outlines:
+#		var np_mat := StandardMaterial3D.new()
+#		np_mat.flags_unshaded = unshaded
+#		np_mat.flags_do_not_receive_shadows = true
+#		np_mat.flags_no_depth_test = true
+#		np_mat.albedo_color = Color.BLACK
+#		np_mat.params_grow = true
+#		np_mat.params_grow_amount = 0.005
+#		np_mat.render_priority = -1
+#
+#		_mat1.next_pass = np_mat
+
+
+
+var shaded:BaseMaterial3D.ShadingMode:
+#	get: return _mat1.flags_unshaded
+#	set(enabled): _mat1.flags_unshaded = enabled
+	get: return _mat1.shading_mode
+	set(mode): _mat1.shading_mode = mode
+
+var on_top:bool:
+	get: return _mat2.no_depth_test
+	set(enabled): _mat2.no_depth_test = enabled
+
+
+func _create_multimesh(mesh:Mesh) -> MultiMesh:
+	var mm = MultiMesh.new()
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+#	mm.color_format = MultiMesh.COLOR_FLOAT
+	mm.use_colors = true
+	mm.mesh = mesh
+	mm.visible_instance_count = 0
+	mm.instance_count = 256
+
+	var mmi = MultiMeshInstance3D.new()
+	mmi.multimesh = mm
+	add_child(mmi)
+	return mm
+
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+#    internal stuff
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+var _axis_for_cross := Vector3.RIGHT
+func _create_circle_points(position:Vector3, radius:float, axis:Vector3, _color:Color) -> Array:
+	axis = axis.normalized()
+
+	if axis == _axis_for_cross:
+		if _axis_for_cross == Vector3.RIGHT:
+			_axis_for_cross = Vector3.UP
+		elif _axis_for_cross == Vector3.UP:
+			_axis_for_cross = Vector3.RIGHT
+
+	var points := []
+#	point(position, Color.green, 5) # draw debug point
+
+	var cross = axis.cross(_axis_for_cross).normalized() *  radius
+
+	var dot = abs(cross.dot(axis))
+	if dot > 0.9:
+		print("I WAS HERE") # this seems to never run
+		cross = axis.cross(Vector3.UP) * radius
+
+	print(axis, cross, dot)
+
+	# draw a debug cross-product vector
+#	line(position, position+cross, _color, 2)
+#	cone(position+cross, cross, _color, 2)
+
+	for r in range(0, 360, 360/float(_CIRCLE_SEGMENTS)):
+		var c = cross.rotated(axis, deg_to_rad(r))
+		var p = position + c * radius
+		printt(p, c, c * radius)
+		points.append(p)
+#		point(p, Color.yellow, 5) # draw debug point
+
+	return points
+
+
+func _create_circle_points_OLD(position:Vector3, radius:Vector3, axis:Vector3) -> Array:
+	var points := []
+
+	for r in range(0, 360, 360/float(_RADIAL_SEGMENTS)):
+		var p = position + radius.rotated(axis, deg_to_rad(r))
+		points.append(p)
+
+	return points
+
+# http://kidscancode.org/godot_recipes/3.x/3d/3d_align_surface/
+func align_with_y(tr:Transform3D, new_y:Vector3) -> Transform3D:
+	if new_y.dot(Vector3.FORWARD) in [-1, 1]:
+#		new_y = Vector3.RIGHT
+		pass
+
+	printt("dot: ", new_y.dot(Vector3.FORWARD), new_y)
+
+	tr.basis.y = new_y
+	tr.basis.x = -tr.basis.z.cross(new_y)
+	tr.basis = tr.basis.orthonormalized()
+	return tr
+
+
+#TODO: Test if it's really better to add many instances once in a while
+#      versus adding one instance every time it's needed.
+#      Maybe there's a tradeoff between too many and too few.
+func _add_instance_to(mm:MultiMesh) -> int:
+	# the index of a new instance is count-1
+	var idx := mm.visible_instance_count
+	mm.visible_instance_count += 1
+
+	# if the visible count reaches the instance count, then more instances are needed
+	if mm.instance_count <= mm.visible_instance_count:
+		# this is enough to make the MultiMesh create more instances internally
+		mm.instance_count += 256
+
+	return idx
+
+
+func _commit_instance(mm:MultiMesh, idx:int, transform:Transform3D, color:Color) -> void:
+	mm.set_instance_transform(idx, transform)
+	mm.set_instance_color(idx, color)
+
+
+func _add_line(a:Vector3, b:Vector3, color:Color, thickness:=1.0) -> void:
+	if _use_cylinders_for_lines:
+		_add_line_cylinder(a, b, color, thickness)
+	else:
+		_add_line_cube(a, b, color, thickness)
+
+
+func _check_equal_points(a:Vector3, b:Vector3) -> bool:
+	if a != b: return false
+#	push_warning("points 'a' and 'b' are the same: %s == %s" % [a, b])
+	return true
+
+
+func _add_line_cube(a:Vector3, b:Vector3, color:Color, thickness:=1.0) -> void:
+	# I had issues here with 'looking_at', which I can't quite remember,
+	# but I solved somehow. I posted it here:
+	#     https://godotforums.org/d/27860-transform-looking-at-not-working
+	# I found a potentially better solution instead of 'looking_at', used
+	# below, in the cylinder line function
+	var mm:MultiMesh = _mmis["lines"]
+	if _check_equal_points(a, b): return
+
+	# adding an instance is basically just raising the visible_intance_count
+	# and then using that index to get and set properties of the instance
+	var idx := _add_instance_to(mm)
+
+	# if transform is to be orthonormalized, do it here before applying any
+	# scaling, or it will revert the scaling
+	var transform := Transform3D() # mm.get_instance_transform(idx).orthonormalized()
+#	var transform := Transform()
+	transform.origin = (a+b)/2
+
+	var target_direction := (b-transform.origin).normalized()
+	transform = transform.looking_at(b,
+		Vector3.UP if abs(target_direction.dot(Vector3.UP)) < _DOT_THRESHOLD
+		else Vector3.BACK
+	)
+
+	# TODO: this probably accumulates scaling if this instance was scaled before,
+	#       but I've never seen any issues, so... I could be wrong.
+	transform.basis.x *= thickness
+	transform.basis.y *= thickness
+	transform.basis.z *= a.distance_to(b) + _WIDTH_FACTOR * thickness
+
+	_commit_instance(mm, idx, transform, color)
+
+
+func _add_line_cylinder(a:Vector3, b:Vector3, color:Color, thickness:=1.0) -> void:
+	if _check_equal_points(a, b): return
+
+	var mm:MultiMesh = _mmis["lines"]
+	var idx := _add_instance_to(mm)
+
+	var transform := Transform3D() # mm.get_instance_transform(idx).orthonormalized()
+	transform.origin = (a+b)/2
+
+	var target_direction := (b-transform.origin).normalized()
+
+#	transform = align_with_y(transform, target_direction)
+
+
+	#	printt("target_direction", target_direction, b)
+	transform = transform.looking_at(b,
+		Vector3.BACK if abs(target_direction.dot(Vector3.FORWARD)) < _DOT_THRESHOLD
+		else Vector3.UP
+	)
+
+	#	var dot = abs(target_direction.dot(axis))
+	#	if dot > 0.9:
+	#		print("I WAS HERE") # this seems to never run
+	#		cross = axis.cross(Vector3.UP) * radius
+
+
+	transform.basis.x *= thickness
+	transform.basis.y *= a.distance_to(b) # stretch the Y instead
+	transform.basis.z *= thickness
+
+	_commit_instance(mm, idx, transform, color)
+
+
+func _add_cone(position:Vector3, direction:Vector3, color:Color, thickness:=1.0):
+	var mm:MultiMesh = _mmis["cones"]
+
+	var idx := _add_instance_to(mm)
+	var transform := Transform3D()
+	transform.origin = position
+
+	transform = align_with_y(transform, direction)
+
+	transform.basis = transform.basis.scaled(Vector3.ONE * thickness)
+
+	_commit_instance(mm, idx, transform, color)
+
+
+func _add_sphere(position:Vector3, color:Color, size:=1.0) -> void:
+	var mm:MultiMesh = _mmis["spheres"]
+
+	var idx := _add_instance_to(mm)
+#	var transform := mm.get_instance_transform(idx).orthonormalized()
+	var transform := Transform3D()
+
+	transform.origin = position
+	transform.basis = transform.basis.scaled(Vector3.ONE * size)
+
+	_commit_instance(mm, idx, transform, color)
+
+
+func _create_new_label() -> Label3D:
+	var l := Label3D.new()
+	_label_nodes.add_child(l)
+	_labels.append(l)
+	_num_labels += 1
+
+#	l.fixed_size = true
+	l.shaded = false
+	l.double_sided = false
+	l.no_depth_test = true
+	l.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	return l
+
+func _clear_labels() -> void:
+	for l in _labels:
+		l.visible = false
+	_num_visible_labels = 0
+
+# using a similar system to the MultiMeshInstance
+func _add_label(position:Vector3, string:String, color:Color, size:=1.0) -> void:
+	var l:Label3D
+	_num_visible_labels += 1
+
+	if _num_labels < _num_visible_labels:
+		l = _create_new_label()
+	else:
+		l = _labels[_num_visible_labels-1]
+		l.visible = true
+
+	l.translation = position
+	l.text = string
+	l.modulate = color
+	l.scale = Vector3.ONE * size
+
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+
+#    Public API
+
+#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=#=
+func clear() -> void:
+	# keep the real 'instance_count' up, to serve as a pool
+	for mm in _mmis.values():
+		mm.visible_instance_count = 0
+	_clear_labels()
+
+func line(a:Vector3, b:Vector3, color:Color, thickness:=1.0) -> void:
+	_add_line(a, b, color, thickness)
+
+# points = contiguous Array[Vector3]
+func polyline(points:Array, color:Color, thickness:=1.0) -> void:
+	for i in range(1, points.size(), 1):
+		_add_line(points[i-1], points[i], color, thickness)
+
+# lines = array of arrays: [a, b, color, thickness]
+func bulk_lines(lines:Array) -> void:
+	for l in lines:
+		_add_line(l[0], l[1], l[2], l[3])
+
+
+# useful for drawing vectors as arrows, for example
+func cone(position:Vector3, direction:Vector3, color:Color, thickness:=1.0) -> void:
+	_add_cone(position, direction, color, thickness)
+
+# cones = array of arrays: [position, direction, color, thickness]
+func bulk_cones(cones:Array) -> void:
+	for c in cones:
+#		var tip = c[0]+c[1]
+		if c.size() > 3:
+			_add_cone(c[0], c[1], c[2], c[3])
+		else:
+			_add_cone(c[0], c[1], c[2])
+
+
+func point(position:Vector3, color:Color, size:=1.0) -> void:
+	_add_sphere(position, color, size)
+
+# points = contiguous Array[Vector3]
+func points(points:Array, color:Color, size:=1.0) -> void:
+	for p in points:
+		_add_sphere(p, color, size)
+
+# points = array of arrays: [position, color, size]
+func bulk_points(points:Array) -> void:
+	for p in points:
+		if p.size() > 2: _add_sphere(p[0], p[1], p[2])
+		else:            _add_sphere(p[0], p[1])
+
+
+func circle(position:Vector3, radius:float, axis:Vector3, color:Color, thickness:=1.0):
+	var points := _create_circle_points(position, radius, axis, color)
+	points.append(points[0])
+	polyline(points, color, thickness)
+
+
+func bulk_circles(circles:Array) -> void:
+	for c in circles:
+		circle(c[0], c[1], c[2], c[3], c[4])
+
+
+
+
+
+
+func text(position:Vector3, string:String, color:Color, size:=1.0) -> void:
+	_add_label(position, string, color, size)
+
+func bulk_text(labels:Array) -> void:
+	for c in labels:
+		_add_label(c[0], c[1], c[2], c[3])

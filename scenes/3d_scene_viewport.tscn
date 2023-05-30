@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://3xvsp8ahlmfu" path="res://scenes/3d_scene_dummy.tscn" id="1_vg3va"]
+
+[sub_resource type="GDScript" id="GDScript_a8q4t"]
+script/source = "extends SubViewportContainer
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta):
+	pass
+
+
+#func _unhandled_input(event):
+##	print(\"SUBVPC | \", event)
+#	$SubViewport.push_unhandled_input(event)
+
+func _gui_input(event):
+	print(\"VP  | \", event)
+"
+
+[node name="3d_scene_viewport" type="SubViewportContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+script = SubResource("GDScript_a8q4t")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+handle_input_locally = false
+physics_object_picking = true
+size = Vector2i(1280, 768)
+render_target_update_mode = 4
+
+[node name="3d_scene" parent="SubViewport" instance=ExtResource("1_vg3va")]

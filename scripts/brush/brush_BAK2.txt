@@ -1,0 +1,9 @@
+class_name Brush extends RefCounted
+
+var faces:Array[Vector3]
+var id:int
+var materials := []
+
+func _init(_id:int, _faces:Array[Vector3]):
+	id = _id
+	faces = _faces

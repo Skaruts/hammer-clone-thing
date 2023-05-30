@@ -1,0 +1,121 @@
+[gd_scene load_steps=11 format=3 uid="uid://cr744otk3hwqj"]
+
+[ext_resource type="Script" path="res://scripts/editor_node.gd" id="1_ok42u"]
+[ext_resource type="Theme" uid="uid://dlttgxfgxkscj" path="res://resources/editor_theme.res" id="1_rfdym"]
+[ext_resource type="PackedScene" uid="uid://dd45rwrjg77br" path="res://scenes/ui/top_menu_bar.tscn" id="4_xhpbw"]
+[ext_resource type="PackedScene" uid="uid://eiuywxksar3q" path="res://scenes/ui/top_button_bar.tscn" id="5_lqrgx"]
+[ext_resource type="Script" path="res://scripts/3d_view.gd" id="5_xkb8f"]
+[ext_resource type="PackedScene" uid="uid://c5nje12cfhp2q" path="res://scenes/editing_modes/brush_aditive/map_scene_brush_add.tscn" id="6_0xr73"]
+[ext_resource type="PackedScene" uid="uid://bnlvyoe8vxedg" path="res://scenes/ui/inspector_panel.tscn" id="7_hw2gl"]
+[ext_resource type="PackedScene" uid="uid://bh6hg0knwpwkx" path="res://scenes/ui/console_panel.tscn" id="7_p0qh3"]
+[ext_resource type="PackedScene" uid="uid://8gq7jrb1tru0" path="res://scenes/2d_view.tscn" id="8_ld324"]
+[ext_resource type="PackedScene" uid="uid://b3ykwtgfuueyi" path="res://scenes/ui/status_bar.tscn" id="9_phkmu"]
+
+[node name="editor_node" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme = ExtResource("1_rfdym")
+script = ExtResource("1_ok42u")
+
+[node name="Panel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="top_menu_bar" parent="VBoxContainer" instance=ExtResource("4_xhpbw")]
+layout_mode = 2
+
+[node name="top_button_bar" parent="VBoxContainer" instance=ExtResource("5_lqrgx")]
+layout_mode = 2
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TabBar" type="TabBar" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer"]
+layout_mode = 2
+tab_count = 3
+tab_0/title = "Map1"
+tab_1/title = "Map2"
+tab_2/title = "Map3"
+
+[node name="TabContainer" type="TabContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tabs_visible = false
+
+[node name="viewports" type="VSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="top_views_hsplit" type="HSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="top_left_vp" type="SubViewportContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(1, 1)
+layout_mode = 2
+size_flags_horizontal = 3
+stretch = true
+script = ExtResource("5_xkb8f")
+
+[node name="SubViewport" type="SubViewport" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit/top_left_vp"]
+handle_input_locally = false
+physics_object_picking = true
+canvas_cull_mask = 4294967293
+size = Vector2i(2, 2)
+render_target_update_mode = 0
+
+[node name="map_scene_brush_add" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit/top_left_vp/SubViewport" instance=ExtResource("6_0xr73")]
+
+[node name="top_right_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit" instance=ExtResource("8_ld324")]
+layout_mode = 2
+
+[node name="bottom_views_hsplit" type="HSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="bottom_left_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/bottom_views_hsplit" instance=ExtResource("8_ld324")]
+layout_mode = 2
+
+[node name="bottom_right_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/bottom_views_hsplit" instance=ExtResource("8_ld324")]
+layout_mode = 2
+
+[node name="console_panel" parent="VBoxContainer/HSplitContainer/VSplitContainer" instance=ExtResource("7_p0qh3")]
+layout_mode = 2
+
+[node name="inspector_panel" parent="VBoxContainer/HSplitContainer" instance=ExtResource("7_hw2gl")]
+layout_mode = 2
+
+[node name="status_bar" parent="VBoxContainer" instance=ExtResource("9_phkmu")]
+layout_mode = 2

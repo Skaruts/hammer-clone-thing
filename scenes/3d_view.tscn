@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=3 uid="uid://bydq2yp2k2s8f"]
+
+[ext_resource type="Script" path="res://scripts/3d_view.gd" id="1_nob4u"]
+[ext_resource type="PackedScene" uid="uid://vwu4p6yn5ycn" path="res://scenes/3d_view_camera.tscn" id="2_c5cbj"]
+
+[node name="3d_view" type="SubViewportContainer"]
+custom_minimum_size = Vector2(1, 1)
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+stretch = true
+script = ExtResource("1_nob4u")
+
+[node name="SubViewport" type="SubViewport" parent="."]
+handle_input_locally = false
+physics_object_picking = true
+size = Vector2i(1280, 768)
+render_target_update_mode = 4
+
+[node name="fly_camera" parent="SubViewport" instance=ExtResource("2_c5cbj")]
+input_ray_pickable = false
+motion_mode = 1

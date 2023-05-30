@@ -1,0 +1,132 @@
+class_name Brush extends StaticBody3D
+
+var mi:MeshInstance3D
+var mesh:ArrayMesh
+
+var verts:Array[Vector3]
+var faces:Array[Face]
+var id:int
+
+var materials := []
+
+
+
+func _get_world_uvs(verts:Array[Vector3]) -> PackedVector2Array:
+	var uvs:Array[Vector2]
+	var EUS := data.editor_unit_size
+
+	for p in verts:
+		var u = p.x + EUS
+		var v = p.y + EUS
+
+		uvs.append(Vector2(u, v))
+
+	return PackedVector2Array(uvs)
+
+
+#               010           110                         Z
+#   Vertices     A0 ---------- B1            Faces      Top    -Y
+#           011 /  |      111 /  |                        |   North
+#             E4 ---------- F5   |                        | /
+#             |    |        |    |          -X West ----- 0 ----- East X
+#             |   D3 -------|-- C2                      / |
+#             |  /  000     |  / 100               South  |
+#             H7 ---------- G6                      Y    Bottom
+#              001           101                          -Z
+#
+func _get_uvs():
+#	var a := Vector3(0, 1, 0)
+#	var b := Vector3(1, 1, 0)
+#	var c := Vector3(1, 0, 0)
+#	var d := Vector3(0, 0, 0)
+#	var e := Vector3(0, 1, 1)
+#	var f := Vector3(1, 1, 1)
+#	var g := Vector3(1, 0, 1)
+#	var h := Vector3(0, 0, 1)
+##	var face_uvs := []
+#	return PackedVector3Array([
+#		a,e,h, a,h,d,  # West
+#		f,b,c, f,c,g,  # East
+#		b,a,d, b,d,c,  # North
+#		e,f,g, e,g,h,  # South
+#		a,b,f, a,f,e,  # Top
+#		h,g,c, h,c,d,  # Bottom
+#	])
+	var face_uvs := [Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1), Vector3(0,0,1), Vector3(1,1,1), Vector3(0,1,1)]
+	return PackedVector3Array(face_uvs + face_uvs + face_uvs + face_uvs + face_uvs + face_uvs)
+
+
+var faces_by_material:Dictionary = {}
+
+func _init(_id:int, _verts:Array[Vector3], _faces:Array[Array]):
+#	mdt = MeshDataTool.new()
+	id = _id
+	name = "brush_" + str(id)
+
+	verts = _verts
+
+	var mat := MeshUtils.new_texture_material(ResourceLoader.load("res://icon.svg"))
+	for f in _faces:
+		faces.append(Face.new(f, mat))
+	faces_by_material[mat] = faces.duplicate()
+
+#	var vertices := MeshUtils.get_cube_outward_tri_verts(_verts)
+#	var uvs = MeshUtils.get_cube_uvs_from_quads(_faces, data.editor_unit_size)
+
+#	printt(vertices.size(), uvs.size())
+
+	var mesh_infos = []
+	for fmat in faces_by_material:
+		var face_array = faces_by_material[fmat]
+		for f in face_array:
+			mesh_infos.append({
+				material = fmat,
+				primitive_type = Mesh.PRIMITIVE_TRIANGLES,
+				vertices = f.get_tri_vertices(),
+				uvs = f.get_uvs(),
+				normals = f.get_vert_normals(),
+			})
+
+#	mesh = MeshUtils.build_mesh([{
+#		material = mat,
+#		primitive_type = Mesh.PRIMITIVE_TRIANGLES,
+#		vertices = vertices,
+#		uvs = uvs,
+#		normals = MeshUtils.get_cube_outward_normals(),
+#	}])
+
+	mesh = MeshUtils.build_mesh(mesh_infos)
+
+
+#	var mat:StandardMaterial3D = StandardMaterial3D.new() # MeshUtils.new_material()
+#	mat.albedo_color = Color.DARK_GOLDENROD
+#	mat.vertex_color_use_as_albedo = true
+#	mat.flags_unshaded      = false
+
+	mi = MeshInstance3D.new()
+	mi.mesh = mesh
+
+	add_child(mi)
+
+#	mdt.create_from_surface(m, 0)
+
+func move(movement:Vector3):
+
+	pass
+
+
+
+func get_edges() -> Array:
+	var edges = []
+	for f in faces:
+		edges += f.edges
+	pass
+
+	return edges
+
+
+
+
+
+
+

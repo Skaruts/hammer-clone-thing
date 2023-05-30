@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://vwu4p6yn5ycn"]
+
+[ext_resource type="Script" path="res://scripts/3d_view_camera.gd" id="1_vvl0w"]
+
+[node name="fly_camera" type="CharacterBody3D"]
+script = ExtResource("1_vvl0w")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+cull_mask = 1048573
+current = true

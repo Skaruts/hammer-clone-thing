@@ -1,0 +1,85 @@
+[gd_scene load_steps=2 format=3 uid="uid://b3ykwtgfuueyi"]
+
+[ext_resource type="Script" path="res://scripts/ui/status_bar.gd" id="1_bok4l"]
+
+[node name="status_bar" type="TabContainer"]
+offset_top = 732.0
+offset_right = 1280.0
+offset_bottom = 768.0
+tabs_visible = false
+script = ExtResource("1_bok4l")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="status_info" type="Label" parent="HBoxContainer"]
+unique_name_in_owner = true
+offset_top = 5.0
+offset_right = 461.0
+offset_bottom = 31.0
+size_flags_horizontal = 3
+text = "Don't press f1 for help"
+
+[node name="status_grid_size" type="Label" parent="HBoxContainer"]
+unique_name_in_owner = true
+offset_left = 465.0
+offset_top = 5.0
+offset_right = 556.0
+offset_bottom = 31.0
+text = "grid size: 32"
+
+[node name="_spacer_2" type="Control" parent="HBoxContainer"]
+custom_minimum_size = Vector2(16, 0)
+layout_mode = 3
+anchors_preset = 0
+offset_left = 560.0
+offset_right = 576.0
+offset_bottom = 36.0
+
+[node name="status_coordinates" type="Label" parent="HBoxContainer"]
+unique_name_in_owner = true
+offset_left = 580.0
+offset_top = 5.0
+offset_right = 703.0
+offset_bottom = 31.0
+text = "@ 12820, 13460 "
+
+[node name="_spacer_" type="Control" parent="HBoxContainer"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 707.0
+offset_right = 1168.0
+offset_bottom = 36.0
+size_flags_horizontal = 3
+
+[node name="status_dummy1" type="Label" parent="HBoxContainer"]
+offset_left = 1172.0
+offset_top = 5.0
+offset_right = 1196.0
+offset_bottom = 31.0
+text = "bla"
+
+[node name="status_dummy2" type="Label" parent="HBoxContainer"]
+offset_left = 1200.0
+offset_top = 5.0
+offset_right = 1224.0
+offset_bottom = 31.0
+text = "bla"
+
+[node name="status_dummy3" type="Label" parent="HBoxContainer"]
+offset_left = 1228.0
+offset_top = 5.0
+offset_right = 1252.0
+offset_bottom = 31.0
+text = "bla"
+
+[node name="status_dummy4" type="Label" parent="HBoxContainer"]
+offset_left = 1256.0
+offset_top = 5.0
+offset_right = 1280.0
+offset_bottom = 31.0
+text = "bla"

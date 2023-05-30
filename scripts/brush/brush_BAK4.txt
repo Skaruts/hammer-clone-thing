@@ -1,0 +1,146 @@
+class_name Brush extends StaticBody3D
+
+var mi:MeshInstance3D
+var mesh:ArrayMesh
+
+var verts:Array[Vertex]
+var faces:Array[Face]
+var id:int
+
+var materials := []
+
+
+
+#func _get_world_uvs(verts:Array[Vector3]) -> PackedVector2Array:
+#	var uvs:Array[Vector2]
+#	var EUS := data.editor_unit_size
+#
+#	for p in verts:
+#		var u = p.x + EUS
+#		var v = p.y + EUS
+#
+#		uvs.append(Vector2(u, v))
+#
+#	return PackedVector2Array(uvs)
+#
+#
+##               010           110                         Z
+##   Vertices     A0 ---------- B1            Faces      Top    -Y
+##           011 /  |      111 /  |                        |   North
+##             E4 ---------- F5   |                        | /
+##             |    |        |    |          -X West ----- 0 ----- East X
+##             |   D3 -------|-- C2                      / |
+##             |  /  000     |  / 100               South  |
+##             H7 ---------- G6                      Y    Bottom
+##              001           101                          -Z
+##
+#func _get_uvs():
+##	var a := Vector3(0, 1, 0)
+##	var b := Vector3(1, 1, 0)
+##	var c := Vector3(1, 0, 0)
+##	var d := Vector3(0, 0, 0)
+##	var e := Vector3(0, 1, 1)
+##	var f := Vector3(1, 1, 1)
+##	var g := Vector3(1, 0, 1)
+##	var h := Vector3(0, 0, 1)
+###	var face_uvs := []
+##	return PackedVector3Array([
+##		a,e,h, a,h,d,  # West
+##		f,b,c, f,c,g,  # East
+##		b,a,d, b,d,c,  # North
+##		e,f,g, e,g,h,  # South
+##		a,b,f, a,f,e,  # Top
+##		h,g,c, h,c,d,  # Bottom
+##	])
+#	var face_uvs := [Vector3(0,0,1), Vector3(1,0,1), Vector3(1,1,1), Vector3(0,0,1), Vector3(1,1,1), Vector3(0,1,1)]
+#	return PackedVector3Array(face_uvs + face_uvs + face_uvs + face_uvs + face_uvs + face_uvs)
+
+
+var faces_by_material:Dictionary = {}
+
+func rebuild_mesh():
+	var mesh_infos = []
+	for fmat in faces_by_material:
+		var face_array = faces_by_material[fmat]
+		for f in face_array:
+			mesh_infos.append({
+				material = fmat,
+				primitive_type = Mesh.PRIMITIVE_TRIANGLES,
+				vertices = f.get_tri_vectors(),
+				uvs = f.get_uvs(),
+				normals = f.get_vert_normals(),
+			})
+
+	mesh = MeshUtils.build_mesh(mesh_infos)
+	mi.mesh = mesh
+
+
+
+#func _init(_id:int, _verts:Array[Vector3], _faces:Array[Array]):
+func _init(_id:int, _faces:Array[Array]):
+#	mdt = MeshDataTool.new()
+	id = _id
+	name = "brush_" + str(id)
+
+#	verts = _verts
+
+	var mat := MeshUtils.new_texture_material(ResourceLoader.load("res://icon.svg"))
+	for f in _faces:
+		var f_verts:Array[Vertex]
+		for vec in f:
+			var v = Vertex.new(vec)
+			f_verts.append(v)
+			verts.append(v)
+
+		faces.append(Face.new(f_verts, mat))
+
+	faces_by_material[mat] = faces.duplicate()
+
+	mi = MeshInstance3D.new()
+	add_child(mi)
+
+#	var mesh_infos = []
+#	for fmat in faces_by_material:
+#		var face_array = faces_by_material[fmat]
+#		for f in face_array:
+#			mesh_infos.append({
+#				material = fmat,
+#				primitive_type = Mesh.PRIMITIVE_TRIANGLES,
+#				vertices = f.get_tri_vertices(),
+#				uvs = f.get_uvs(),
+#				normals = f.get_vert_normals(),
+#			})
+#
+#	mesh = MeshUtils.build_mesh(mesh_infos)
+	rebuild_mesh()
+
+
+
+
+func move(movement:Vector3):
+	for v in verts:
+		v.vec += movement
+
+#	for f in faces:
+#		for i in f.verts.size():
+#			f.verts[i].vec = f.verts[i].vec + movement
+
+	rebuild_mesh()
+	relay.view_2d_redraw_request.emit()
+
+
+
+func get_edges() -> Array:
+	var edges = []
+	for f in faces:
+		edges += f.edges
+	pass
+
+	return edges
+
+
+
+
+
+
+

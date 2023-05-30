@@ -1,0 +1,150 @@
+[gd_scene load_steps=10 format=3 uid="uid://d3d7m87l1tvdh"]
+
+[ext_resource type="Theme" uid="uid://dlttgxfgxkscj" path="res://resources/editor_theme.res" id="1_foyiu"]
+[ext_resource type="Script" path="res://scripts/editor_node.gd" id="1_ok42u"]
+[ext_resource type="PackedScene" uid="uid://bydq2yp2k2s8f" path="res://scenes/3d_view.tscn" id="1_ylb77"]
+[ext_resource type="PackedScene" uid="uid://dg4dsef4eu8o6" path="res://scenes/3d_scene_viewport.tscn" id="3_mcq13"]
+[ext_resource type="PackedScene" uid="uid://dd45rwrjg77br" path="res://scenes/ui/top_menu_bar.tscn" id="4_xhpbw"]
+[ext_resource type="PackedScene" uid="uid://eiuywxksar3q" path="res://scenes/ui/top_button_bar.tscn" id="5_lqrgx"]
+[ext_resource type="PackedScene" uid="uid://bnlvyoe8vxedg" path="res://scenes/ui/inspector_panel.tscn" id="7_hw2gl"]
+[ext_resource type="PackedScene" uid="uid://bh6hg0knwpwkx" path="res://scenes/ui/console_panel.tscn" id="7_p0qh3"]
+[ext_resource type="PackedScene" uid="uid://b3ykwtgfuueyi" path="res://scenes/ui/status_bar.tscn" id="9_phkmu"]
+
+[node name="editor_node" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_foyiu")
+script = ExtResource("1_ok42u")
+
+[node name="3d_scene_viewport" parent="." instance=ExtResource("3_mcq13")]
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="top_menu_bar" parent="VBoxContainer" instance=ExtResource("4_xhpbw")]
+
+[node name="top_button_bar" parent="VBoxContainer" instance=ExtResource("5_lqrgx")]
+
+[node name="HSplitContainer" type="HSplitContainer" parent="VBoxContainer"]
+offset_top = 77.0
+offset_right = 1280.0
+offset_bottom = 728.0
+size_flags_vertical = 3
+
+[node name="VSplitContainer" type="VSplitContainer" parent="VBoxContainer/HSplitContainer"]
+offset_right = 968.0
+offset_bottom = 651.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer"]
+offset_right = 968.0
+offset_bottom = 539.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="TabBar" type="TabBar" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer"]
+offset_right = 968.0
+offset_bottom = 31.0
+tab_count = 3
+tab_0/title = "Map1"
+tab_1/title = "Map2"
+tab_2/title = "Map3"
+
+[node name="TabContainer" type="TabContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer"]
+offset_top = 35.0
+offset_right = 968.0
+offset_bottom = 539.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+tabs_visible = false
+
+[node name="viewports" type="VSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 6.0
+offset_right = -4.0
+offset_bottom = -4.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="top_views_hsplit" type="HSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports"]
+offset_right = 960.0
+offset_bottom = 241.0
+size_flags_vertical = 3
+
+[node name="top_left_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit" instance=ExtResource("1_ylb77")]
+unique_name_in_owner = true
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 474.0
+offset_bottom = 241.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="top_right_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/top_views_hsplit" instance=ExtResource("1_ylb77")]
+unique_name_in_owner = true
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 486.0
+offset_right = 960.0
+offset_bottom = 241.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="bottom_views_hsplit" type="HSplitContainer" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports"]
+offset_top = 253.0
+offset_right = 960.0
+offset_bottom = 494.0
+size_flags_vertical = 3
+
+[node name="bottom_left_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/bottom_views_hsplit" instance=ExtResource("1_ylb77")]
+unique_name_in_owner = true
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_right = 474.0
+offset_bottom = 241.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="bottom_right_vp" parent="VBoxContainer/HSplitContainer/VSplitContainer/VBoxContainer/TabContainer/viewports/bottom_views_hsplit" instance=ExtResource("1_ylb77")]
+unique_name_in_owner = true
+anchors_preset = 0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = 486.0
+offset_right = 960.0
+offset_bottom = 241.0
+grow_horizontal = 1
+grow_vertical = 1
+
+[node name="console_panel" parent="VBoxContainer/HSplitContainer/VSplitContainer" instance=ExtResource("7_p0qh3")]
+
+[node name="inspector_panel" parent="VBoxContainer/HSplitContainer" instance=ExtResource("7_hw2gl")]
+
+[node name="status_bar" parent="VBoxContainer" instance=ExtResource("9_phkmu")]

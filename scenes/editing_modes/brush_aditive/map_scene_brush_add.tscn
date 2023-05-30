@@ -1,0 +1,101 @@
+[gd_scene load_steps=11 format=3 uid="uid://c5nje12cfhp2q"]
+
+[ext_resource type="Script" path="res://scripts/editing_modes/brush_aditive/map_scene_brush_add.gd" id="1_lhv2x"]
+[ext_resource type="Environment" uid="uid://dsmnxbk1imrhv" path="res://resources/environment.tres" id="2_p5fb6"]
+[ext_resource type="PackedScene" uid="uid://vwu4p6yn5ycn" path="res://scenes/3d_view_camera.tscn" id="3_iw5e8"]
+[ext_resource type="Script" path="res://scripts/grid_plane.gd" id="4_w3oiv"]
+[ext_resource type="PackedScene" uid="uid://drwqyciibivd7" path="res://scenes/3d_direction_gizmo.tscn" id="5_45d87"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_e0ris"]
+shading_mode = 0
+billboard_mode = 2
+billboard_keep_scale = true
+
+[sub_resource type="TextMesh" id="TextMesh_ek6q2"]
+material = SubResource("StandardMaterial3D_e0ris")
+text = "foooo derpf"
+depth = 0.0
+
+[sub_resource type="LabelSettings" id="LabelSettings_pa4h3"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_b1xfc"]
+
+[sub_resource type="WorldBoundaryShape3D" id="WorldBoundaryShape3D_7hu2d"]
+
+[node name="map_scene_brush_add" type="Node3D"]
+script = ExtResource("1_lhv2x")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = ExtResource("2_p5fb6")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.989897, -0.122791, 0.0708928, 0, 0.499998, 0.866026, -0.141786, 0.857277, -0.494947, 0, 0, 0)
+
+[node name="grid_plane" type="Node3D" parent="."]
+script = ExtResource("4_w3oiv")
+
+[node name="fly_camera" parent="." instance=ExtResource("3_iw5e8")]
+
+[node name="OrientationGizmo" type="Control" parent="."]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -100.0
+offset_bottom = 100.0
+grow_horizontal = 0
+size_flags_horizontal = 0
+mouse_filter = 2
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="OrientationGizmo"]
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="OrientationGizmo/SubViewportContainer"]
+transparent_bg = true
+handle_input_locally = false
+canvas_cull_mask = 4293918722
+size = Vector2i(100, 100)
+render_target_update_mode = 4
+
+[node name="3d_direction_gizmo" parent="OrientationGizmo/SubViewportContainer/SubViewport" instance=ExtResource("5_45d87")]
+unique_name_in_owner = true
+transform = Transform3D(-1, 8.74228e-08, 0, -8.74228e-08, -1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="OrientationGizmo/SubViewportContainer/SubViewport"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+cull_mask = 2
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.5, 0.5, 0.5)
+visible = false
+mesh = SubResource("TextMesh_ek6q2")
+
+[node name="Label" type="Label" parent="MeshInstance3D"]
+offset_right = 40.0
+offset_bottom = 23.0
+text = "boooo"
+label_settings = SubResource("LabelSettings_pa4h3")
+
+[node name="Label3D" type="Label3D" parent="MeshInstance3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.272702, 0)
+billboard = 2
+double_sided = false
+no_depth_test = true
+fixed_size = true
+text = "booos"
+outline_size = 8
+
+[node name="ShapeCast3D" type="ShapeCast3D" parent="."]
+shape = SubResource("BoxShape3D_b1xfc")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+enabled = false
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("WorldBoundaryShape3D_7hu2d")
